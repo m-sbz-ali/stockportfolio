@@ -123,6 +123,7 @@ class app:
     TOKEN_NAME_FOREX = 'Forex'
     
     TOKEN_NAME_CURRENCY_USD = 'USD'
+    PATH_TO_REPORTS = '/Users/msab8448/Google Drive/FANCY__/Trader/IB/workspace'
 
     def __init__(self) -> None:
         self._current_asset_kind = assetKind.UNKNOWN
@@ -188,7 +189,7 @@ class app:
 
         with open('trades.txt', 'a') as f:
 
-            for in_file in self.get_file_list('/Users/msab8448/Google Drive/FANCY__/Trader/IB/workspace'):
+            for in_file in self.get_file_list(app.PATH_TO_REPORTS):
                 for _rec in self.parse_file(in_file):
                     if _rec:
                         all_recs.append(_rec)
@@ -201,7 +202,7 @@ class app:
             soup = BeautifulSoup(contents, 'lxml')
             # print(soup.prettify())
             # return 
-ghnvbjgfvcfvkgngrtyr            title = soup.title.text
+            title = soup.title.text
             yield (app.TOKEN_NAME_TITLE, soup.title.get_text())
             # print(soup.title)
             # print(title)
