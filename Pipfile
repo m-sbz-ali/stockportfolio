@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 lxml = "*"
 bs4 = "*"
+python-dateutil = "==1.4"
 
 [dev-packages]
 
