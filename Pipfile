@@ -6,7 +6,11 @@ name = "pypi"
 [packages]
 lxml = "*"
 bs4 = "*"
+<<<<<<< HEAD
 python-dateutil = "*"
+=======
+python-dateutil = "==1.4"
+>>>>>>> 6e052b4525a4bc62aad8003f2f07716378595997
 
 [dev-packages]
 
