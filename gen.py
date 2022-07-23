@@ -13,6 +13,7 @@ from dateutil.parser import parse
 from os import listdir
 from os.path import isfile, join
 from trade_details import *
+from share_sight_csv_split import csvSplit
 # parse_file
 #     parse_html
 #         parse_tr
@@ -35,8 +36,9 @@ class app:
     TOKEN_NAME_FOREX = 'Forex'
 
     TOKEN_NAME_CURRENCY_USD = 'USD'
-    PATH_TO_REPORTS = '/Users/msab8448/Google Drive/FANCY__/Trader/IB/workspace'
-#   PATH_TO_REPORTS = '/home/max/winhome/Google Drive/FANCY__/Trader/IB/workspace'
+
+  # PATH_TO_REPORTS = '/Users/msab8448/Google Drive/FANCY__/Trader/IB/workspace'
+    PATH_TO_REPORTS = "/home/max/winhome/Google Drive/FANCY__/Trader/IB/workspace"
 
     def __init__(self) -> None:
         self._current_asset_kind = assetKind.UNKNOWN
@@ -82,6 +84,15 @@ class app:
 
 
     def run(self):
+
+        csvp = csvSplit()
+        csvp.load_csv()
+        csvp.split()
+        csvp.save()
+
+        return
+
+
         state = 0
         cfd = False
         all_recs = []

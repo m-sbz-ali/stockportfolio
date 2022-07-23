@@ -2,6 +2,8 @@
 msab8448s-Silver:stockportfolio msab8448$ pipenv shell
 (stockportfolio) bash-3.2$ python3 -m gen
 
-#Windowss
+#Windows
+/home/max/stockportfolio
 source .venv/bin/activate
+
 python3 gen.py
