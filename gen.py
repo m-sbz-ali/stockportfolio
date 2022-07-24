@@ -86,7 +86,7 @@ class app:
     def run(self):
 
         csvp = csvSplit()
-        csvp.load_csv()
+        csvp.load_csv("test.csv",1)
         csvp.split()
         csvp.save()
 

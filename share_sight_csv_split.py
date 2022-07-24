@@ -1,7 +1,7 @@
 
 import csv
 from os.path import isfile, join
-
+from typing import Dict, List
 
 # FXRateToBase	Symbol	CUSIP	TradeID	DateTime	Quantity	TradePrice	Proceeds	CostBasis	FifoPnlRealized	Open/CloseIndicator	Buy/Sell	CurrencyPrimary	Description	IBCommission	IBCommissionCurrency	NetCash	FxPnl
 
@@ -82,18 +82,30 @@ class csvSplit:
     def __init__(self) -> None:
         pass
 
-    def load_csv(self, file=""):
+    def load_csv(self, file="", ignore_first_n_recs = 0):
 
         f = join(self.CSV_PATH,self.FILE_NAME)
         if len(file) > 0:
             f = join(self.CSV_PATH,file)
 
+        rec_lst = {} # type Dict(List[csvRecord])
+
         with open(f, newline='') as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=',')
+            rec_no = 0
             for row in csv_reader:
                 rec = csvRecord(row)
                 if rec.is_valid:
-                    print(rec)
+                    rec_no += 1
+                    if rec_no <= ignore_first_n_recs:
+                        continue
+                    try:
+                        rec_lst[rec.Symbol].append(rec)
+                    except KeyError:
+                        rec_lst[rec.Symbol] = [rec]
+
+            for key in rec_lst.keys():
+                print(key, ':', len (rec_lst.get(key)))
 
     def split(self):
         pass
