@@ -88,7 +88,7 @@ class app:
         csvp = csvSplit()
         csvp.load_csv("test.csv",1)
         csvp.split()
-        csvp.save()
+        csvp.save_to_xls()
 
         return
 

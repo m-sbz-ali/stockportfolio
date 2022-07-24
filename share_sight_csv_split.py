@@ -2,6 +2,8 @@
 import csv
 from os.path import isfile, join
 from typing import Dict, List
+import xlsxwriter
+import string
 
 # FXRateToBase	Symbol	CUSIP	TradeID	DateTime	Quantity	TradePrice	Proceeds	CostBasis	FifoPnlRealized	Open/CloseIndicator	Buy/Sell	CurrencyPrimary	Description	IBCommission	IBCommissionCurrency	NetCash	FxPnl
 
@@ -25,6 +27,37 @@ class csvRecord:
     IBCOMMISSIONCURRENCY = 15
     NETCASH = 16
     FXPNL = 17
+    CELL_FORMATS ={'FXRateToBase' : '0.0000',
+            'Symbol':'',
+            'CUSIP':'',
+            'TradeID':'0',
+            'DateTime':'@',
+            'Quantity':'0',
+            'TradePrice':'$#,##0.000',
+            'Proceeds':'$#,##0.00;-$#,##0.00',
+            'CostBasis':'$#,##0.00;-$#,##0.00',
+            'FifoPnlRealized':'$#,##0.00;-$#,##0.00',
+            'Open_CloseIndicator':'',
+            'Buy_Sell':'',
+            'CurrencyPrimary':'',
+            'Description':'',
+            'IBCommission':'$#,##0.00;-$#,##0.00',
+            'IBCommissionCurrency':'',
+            'NetCash':'$#,##0.00;-$#,##0.00',
+            'FxPnl':'$#,##0.00;-$#,##0.00',
+        }
+
+    def to_float(val_lst, index):
+        try:
+            return float(val_lst[index])
+        except ValueError:
+            return  val_lst[index]
+
+    def to_int(val_lst, index):
+        try:
+            return int(val_lst[index])
+        except ValueError:
+            return  val_lst[index]
 
     def __init__(self, row_val) -> None:
 
@@ -33,24 +66,29 @@ class csvRecord:
         if len (row_val) < 17:
             return
 
-        self.FXRateToBase = row_val[csvRecord.FXRATETOBASE]
+        self.FXRateToBase = csvRecord.to_float(row_val, csvRecord.FXRATETOBASE)
+
         self.Symbol = row_val[csvRecord.SYMBOL]
         self.CUSIP = row_val[csvRecord.CUSIP]
-        self.TradeID = row_val[csvRecord.TRADEID]
+
+        self.TradeID = csvRecord.to_float(row_val, csvRecord.TRADEID)
+
         self.DateTime = row_val[csvRecord.DATETIME]
-        self.Quantity = row_val[csvRecord.QUANTITY]
-        self.TradePrice = row_val[csvRecord.TRADEPRICE]
-        self.Proceeds = row_val[csvRecord.PROCEEDS]
-        self.CostBasis = row_val[csvRecord.COSTBASIS]
-        self.FifoPnlRealized = row_val[csvRecord.FIFOPNLREALIZED]
+
+        self.Quantity = csvRecord.to_float(row_val, csvRecord.QUANTITY)
+
+        self.TradePrice = csvRecord.to_float(row_val, csvRecord.TRADEPRICE)
+        self.Proceeds = csvRecord.to_float(row_val, csvRecord.PROCEEDS)
+        self.CostBasis = csvRecord.to_float(row_val, csvRecord.COSTBASIS)
+        self.FifoPnlRealized = csvRecord.to_float(row_val, csvRecord.FIFOPNLREALIZED)
         self.Open_CloseIndicator= row_val[csvRecord.OPEN_CLOSEINDICATOR]
         self.Buy_Sell = row_val[csvRecord.BUY_SELL]
         self.CurrencyPrimary= row_val[csvRecord.CURRENCYPRIMARY]
         self.Description = row_val[csvRecord.DESCRIPTION]
-        self.IBCommission = row_val[csvRecord.IBCOMMISSION]
+        self.IBCommission = csvRecord.to_float(row_val, csvRecord.IBCOMMISSION)
         self.IBCommissionCurrency = row_val[csvRecord.IBCOMMISSIONCURRENCY]
-        self.NetCash = row_val[csvRecord.NETCASH]
-        self.FxPnl = row_val[csvRecord.FXPNL]
+        self.NetCash = csvRecord.to_float(row_val, csvRecord.NETCASH)
+        self.FxPnl = csvRecord.to_float(row_val, csvRecord.FXPNL)
 
         self.is_valid = True
 
@@ -88,27 +126,69 @@ class csvSplit:
         if len(file) > 0:
             f = join(self.CSV_PATH,file)
 
-        rec_lst = {} # type Dict(List[csvRecord])
+        self.rec_lst = {} # type Dict(List[csvRecord])
 
         with open(f, newline='') as csvfile:
+
             csv_reader = csv.reader(csvfile, delimiter=',')
-            rec_no = 0
+            rec_no = 1
             for row in csv_reader:
+                if rec_no <= ignore_first_n_recs:
+                    rec_no += 1
+                    continue
                 rec = csvRecord(row)
                 if rec.is_valid:
-                    rec_no += 1
-                    if rec_no <= ignore_first_n_recs:
-                        continue
                     try:
-                        rec_lst[rec.Symbol].append(rec)
+                        self.rec_lst[rec.Symbol].append(rec)
                     except KeyError:
-                        rec_lst[rec.Symbol] = [rec]
+                        self.rec_lst[rec.Symbol] = [rec]
 
-            for key in rec_lst.keys():
-                print(key, ':', len (rec_lst.get(key)))
+                rec_no += 1
+
+            for key in self.rec_lst.keys():
+                print(key, ':', len (self.rec_lst.get(key)))
 
     def split(self):
+        csv.excel_tab()
         pass
 
-    def save(self):
+
+    def get_cell_format(self, field_name):
+
+        return
+
+    def save_to_xls(self):
+        workbook = xlsxwriter.Workbook('all_trades.xlsx')
+        clmmns_letters = string.ascii_uppercase
+        for symbol in self.rec_lst.keys():
+            worksheet  = workbook.add_worksheet('{}_trades'.format(symbol))
+            row = 1
+            # print(clmmns)
+            filed_names=[]
+
+            for trade in self.rec_lst[symbol]:
+                trade_fields = trade.__dict__
+                # print(trade_fields)
+                clmmn_index = 0
+                for field in trade_fields.keys():
+                    if field in ('is_valid',):
+                        continue
+                    _clm_name = '{}{}'.format(clmmns_letters[clmmn_index], row)
+                    clmmn_index += 1
+                    if row == 1:
+                        filed_names.append(field)
+                        worksheet.write(_clm_name, '{}'.format(field))
+                    else:
+                        # print(csvRecord.CELL_FORMATS.get(filed_names[clmmn_index]))
+                        # print(filed_names)
+                        worksheet.write(_clm_name, trade_fields[field])
+                        # if clmmn_index == 1:
+                        #     worksheet.write(_clm_name, trade_fields[field])
+                        # else:
+                        #     worksheet.write(_clm_name, '{}'.format(trade_fields[field]))
+                row +=1
+
+        workbook.close()
+
+
         pass
