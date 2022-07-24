@@ -86,7 +86,8 @@ class app:
     def run(self):
 
         csvp = csvSplit()
-        csvp.load_csv("test.csv",1)
+        csvp.load_csv("U4612743_U4612743_20210701_20220630.csv",1)
+        # csvp.load_csv("test1.csv",1)
         csvp.split()
         csvp.save_to_xls()
 

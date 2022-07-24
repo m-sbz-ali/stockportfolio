@@ -43,8 +43,8 @@ class csvRecord:
             'Description':'',
             'IBCommission':'$#,##0.00;-$#,##0.00',
             'IBCommissionCurrency':'',
-            'NetCash':'$#,##0.00;-$#,##0.00',
-            'FxPnl':'$#,##0.00;-$#,##0.00',
+            # 'NetCash':'$#,##0.00;-$#,##0.00',
+            # 'FxPnl':'$#,##0.00;-$#,##0.00',
         }
 
     def to_float(val_lst, index):
@@ -87,8 +87,8 @@ class csvRecord:
         self.Description = row_val[csvRecord.DESCRIPTION]
         self.IBCommission = csvRecord.to_float(row_val, csvRecord.IBCOMMISSION)
         self.IBCommissionCurrency = row_val[csvRecord.IBCOMMISSIONCURRENCY]
-        self.NetCash = csvRecord.to_float(row_val, csvRecord.NETCASH)
-        self.FxPnl = csvRecord.to_float(row_val, csvRecord.FXPNL)
+        # self.NetCash = csvRecord.to_float(row_val, csvRecord.NETCASH)
+        # self.FxPnl = csvRecord.to_float(row_val, csvRecord.FXPNL)
 
         self.is_valid = True
 
@@ -110,12 +110,18 @@ class csvRecord:
             self.Description,
             self.IBCommission,
             self.IBCommissionCurrency,
-            self.NetCash,
-            self.FxPnl)
+            # self.NetCash,
+            # self.FxPnl
+            )
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 class csvSplit:
-    CSV_PATH = "/home/max/stockportfolio/tests"
-    FILE_NAME = "test.csv"
+    # CSV_PATH = "/home/max/stockportfolio/tests"
+    CSV_PATH = "/home/max/winhome/work/tax/2023/trades/IB/"
+    FILE_NAME = "U4612743_U4612743_20210701_20220630.csv"
+    clmmns_letters = string.ascii_uppercase
 
     def __init__(self) -> None:
         pass
@@ -157,35 +163,36 @@ class csvSplit:
 
         return
 
+    def save_header(self, worksheet, symbol):
+        filed_names=[]
+        for trade in self.rec_lst[symbol]:
+            trade_fields = trade.__dict__
+            clmmn_index = 0
+            for field in trade_fields.keys():
+                if field in ('is_valid',):
+                    continue
+                _clm_name = '{}{}'.format(csvSplit.clmmns_letters[clmmn_index], 1)
+                clmmn_index += 1
+                filed_names.append(field)
+                worksheet.write(_clm_name, '{}'.format(field))
+            return
+
+
     def save_to_xls(self):
         workbook = xlsxwriter.Workbook('all_trades.xlsx')
-        clmmns_letters = string.ascii_uppercase
         for symbol in self.rec_lst.keys():
             worksheet  = workbook.add_worksheet('{}_trades'.format(symbol))
-            row = 1
-            # print(clmmns)
-            filed_names=[]
-
+            self.save_header(worksheet, symbol)
+            row = 2
             for trade in self.rec_lst[symbol]:
                 trade_fields = trade.__dict__
-                # print(trade_fields)
                 clmmn_index = 0
                 for field in trade_fields.keys():
                     if field in ('is_valid',):
                         continue
-                    _clm_name = '{}{}'.format(clmmns_letters[clmmn_index], row)
+                    _clm_name = '{}{}'.format(csvSplit.clmmns_letters[clmmn_index], row)
                     clmmn_index += 1
-                    if row == 1:
-                        filed_names.append(field)
-                        worksheet.write(_clm_name, '{}'.format(field))
-                    else:
-                        # print(csvRecord.CELL_FORMATS.get(filed_names[clmmn_index]))
-                        # print(filed_names)
-                        worksheet.write(_clm_name, trade_fields[field])
-                        # if clmmn_index == 1:
-                        #     worksheet.write(_clm_name, trade_fields[field])
-                        # else:
-                        #     worksheet.write(_clm_name, '{}'.format(trade_fields[field]))
+                    worksheet.write(_clm_name, trade_fields[field])
                 row +=1
 
         workbook.close()
